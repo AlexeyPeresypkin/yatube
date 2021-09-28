@@ -10,8 +10,7 @@ class PostAdmin(admin.ModelAdmin):
     search_fields = ("text",)
     # добавляем возможность фильтрации по дате
     list_filter = ("pub_date",)
-    empty_value_display = "-пусто-" # это свойство сработает для всех колонок: где пусто - там будет эта строка
-
+    empty_value_display = "-пусто-"  # это свойство сработает для всех колонок: где пусто - там будет эта строка
 
 
 admin.site.register(Post, PostAdmin)

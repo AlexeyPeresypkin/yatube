@@ -16,14 +16,26 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+from django.contrib.flatpages import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('posts.urls')),
+    # flatpages
+    path('about/', include('django.contrib.flatpages.urls')),
     #  регистрация и авторизация
     path("auth/", include("users.urls")),
     #  если нужного шаблона для /auth не нашлось в файле users.urls —
     #  ищем совпадения в файле django.contrib.auth.urls
     path("auth/", include("django.contrib.auth.urls")),
+    path('', include('posts.urls')),
 
+]
+
+# добавим новые пути
+urlpatterns += [
+    path('about-us/', views.flatpage, {'url': '/about-us/'}, name='about'),
+    path('terms/', views.flatpage, {'url': '/terms/'}, name='terms'),
+    path('about/', views.flatpage, {'url': '/about/'}, name='about'),
+    path('about-author/', views.flatpage, {'url': '/about-author/'}, name='about_author'),
+    path('about-spec/', views.flatpage, {'url': '/about-spec/'}, name='about_spec'),
 ]

@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}{{ context_dict.title}}{% endblock %}
+{% block title %}{{ context_dict.title }}{% endblock %}
 {% load user_filters %}
 
 {% block content %}
@@ -10,7 +10,7 @@
     {% endfor %}
 
 
-    <form method="post" action="{% url 'new_post' %}">
+    <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
 
         {% for field in form %}

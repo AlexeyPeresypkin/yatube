@@ -13,8 +13,8 @@ User = get_user_model()
 
 def index(request):
     post_list = Post.objects.order_by('-pub_date').all()
-    paginator = Paginator(post_list,
-                          10)  # показывать по 10 записей на странице.
+    paginator = Paginator(post_list, 10)
+    # показывать по 10 записей на странице.
 
     page_number = request.GET.get(
         'page')  # переменная в URL с номером запрошенной страницы
@@ -33,10 +33,11 @@ def new_post(request):
     if request.method == 'POST':
         form = PostForm(request.POST)
         if form.is_valid():
-            Post.objects.create(author=request.user,
-                                group=form.cleaned_data['group'],
-                                text=form.cleaned_data['text'])
+            post = form.save(commit=False)
+            post.author = request.user
+            post.save()
             return redirect('index')
+            # return redirect('post', username=request.user, post_id=30)
         return render(request, 'new_post.html',
                       {'form': form, 'context_dict': context_dict})
     form = PostForm()
@@ -77,27 +78,54 @@ def profile(request, username):
 def post_view(request, username, post_id):
     user_auth = request.user
     user = get_object_or_404(User, username=username)
-    post = get_object_or_404(Post, pk=post_id)
+    post = get_object_or_404(Post, id=post_id, author__username=username)
     return render(request, 'post.html',
-                  {'user': user, 'post': post, 'user_auth': user_auth})
+                  {'author': post.author, 'post': post,
+                   'user_auth': user_auth})
 
 
 @login_required
 def post_edit(request, username, post_id):
     context_dict = {'title': 'Редактировать запись', 'button': 'Изменить'}
-    post = get_object_or_404(Post, pk=post_id)
-    user = get_object_or_404(User, username=username)
-    if request.user != post.author:
-        return redirect("post", username=post.author, post_id=post.pk)
-    form = PostForm(request.POST or None, instance=post)
-    if form.is_valid():
-        form.save()
-        return redirect("post", username=post.author, post_id=post.pk)
+    author = get_object_or_404(User, username=username)
+    post = get_object_or_404(Post, pk=post_id, author=author)
+    if request.user != author:
+        return redirect(
+            "post",
+            username=request.user.username,
+            post_id=post.pk
+        )
+    form = PostForm(request.POST or None, files=request.FILES or None,
+                    instance=post)
+    if request.method == 'POST':
+        if form.is_valid():
+            form.save()
+            return redirect('post', username=request.user, post_id=post_id)
     return render(request, 'new_post.html',
-                  {'form': form, 'context_dict': context_dict})
-# тут тело функции. Не забудьте проверить,
-# что текущий пользователь — это автор записи.
-# В качестве шаблона страницы редактирования укажите шаблон создания новой записи
-# который вы создали раньше (вы могли назвать шаблон иначе)
-# return render(request, 'new_post.html',
-#               {'form': form, 'context_dict': context_dict})
+                  {
+                      'form': form,
+                      'context_dict': context_dict,
+                      'post': post
+                  })
+
+    # тут тело функции. Не забудьте проверить,
+    # что текущий пользователь — это автор записи.
+    # В качестве шаблона страницы редактирования укажите шаблон создания новой записи
+    # который вы создали раньше (вы могли назвать шаблон иначе)
+    # return render(request, 'new_post.html',
+    #               {'form': form, 'context_dict': context_dict})
+
+
+def page_not_found(request, exception):
+    # Переменная exception содержит отладочную информацию,
+    # выводить её в шаблон пользователской страницы 404 мы не станем
+    return render(
+        request,
+        "misc/404.html",
+        {"path": request.path},
+        status=404
+    )
+
+
+def server_error(request):
+    return render(request, "misc/500.html", status=500)

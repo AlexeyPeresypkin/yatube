@@ -96,3 +96,28 @@ class PostsTests(TestCase):
     def test_404(self):
         response = self.auth_user_client.get('/fsdfsdf/')
         self.assertEqual(response.status_code, 404)
+
+    def test_img_exist(self):
+        with open('posts/file.jpg', 'rb') as img:
+            post = self.auth_user_client.post('/new/',
+                                              {'text': 'imagetest',
+                                               'group': self.group.id,
+                                               'image': img},
+                                              follow=True)
+        response_index = self.auth_user_client.get(reverse('index'))
+        response_profile = self.auth_user_client.get(
+            reverse(
+                'profile', kwargs={'username': self.user},
+            ))
+        response_post = self.auth_user_client.get(
+            reverse(
+                'post', kwargs={'post_id': 2, 'username': self.user},
+            ))
+        response_group = self.auth_user_client.get(reverse(
+            'group_posts', kwargs={'slug': 'test1'}
+        ))
+        # print(response_index.context['page'][1].text)
+        self.assertContains(response_index, 'imagetest')
+        self.assertContains(response_profile, 'imagetest')
+        self.assertContains(response_post, 'imagetest')
+        self.assertContains(response_group, 'imagetest')

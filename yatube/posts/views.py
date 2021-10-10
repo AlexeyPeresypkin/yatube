@@ -3,8 +3,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 
-from posts.forms import PostForm
-from posts.models import Post, Group
+from posts.forms import PostForm, CommentForm
+from posts.models import Post, Group, Comment
 
 from django.contrib.auth import get_user_model
 
@@ -49,7 +49,7 @@ def group_posts(request, slug):
     group = get_object_or_404(Group, slug=slug)
     group_posts_list = Post.objects.filter(group=group) \
         .order_by('-pub_date').all()
-    paginator = Paginator(group_posts_list, 2)
+    paginator = Paginator(group_posts_list, 10)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
     return render(request, 'group.html',
@@ -79,9 +79,13 @@ def post_view(request, username, post_id):
     user_auth = request.user
     user = get_object_or_404(User, username=username)
     post = get_object_or_404(Post, id=post_id, author__username=username)
+    comments = Comment.objects.filter(post=post.pk)
+    form = CommentForm()
     return render(request, 'post.html',
                   {'author': post.author, 'post': post,
-                   'user_auth': user_auth})
+                   'user_auth': user_auth,
+                   'comments': comments,
+                   'form': form})
 
 
 @login_required
@@ -129,3 +133,17 @@ def page_not_found(request, exception):
 
 def server_error(request):
     return render(request, "misc/500.html", status=500)
+
+
+@login_required
+def add_comment(request, username, post_id):
+    post = get_object_or_404(Post, pk=post_id, author__username=username)
+    form = CommentForm(request.POST or None)
+    if request.method == 'POST':
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.post = post
+            comment.author = post.author
+            comment.save()
+            return redirect('post', username=username, post_id=post_id)
+    return render(request, 'post.html', {'form': form})

@@ -42,6 +42,8 @@
 
             </div>
         </div>
+
+        {% include 'comments.html' with post=post items=comments %}
     </main>
 
 {% endblock %}

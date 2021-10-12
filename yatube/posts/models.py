@@ -33,3 +33,13 @@ class Comment(models.Model):
                                related_name='comments')
     text = models.TextField()
     created = models.DateTimeField(auto_now_add=True)
+
+
+class Follow(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE,
+                             related_name='follower')  # подписчик
+    author = models.ForeignKey(User, on_delete=models.CASCADE,
+                               related_name='following')  # автор
+
+    def __str__(self):
+        return f'Автор: {self.author}, подписчик: {self.user}'

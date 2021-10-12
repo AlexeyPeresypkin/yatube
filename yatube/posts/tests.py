@@ -7,7 +7,7 @@ from django.test import TestCase, Client, override_settings
 from django.urls import reverse
 from sorl.thumbnail import get_thumbnail
 
-from posts.models import Post, Group
+from posts.models import Post, Group, Follow
 from yatube import settings
 
 User = get_user_model()
@@ -223,9 +223,12 @@ class FollowTest(TestCase):
         self.user3 = User.objects.create_user(
             username='user3', email='123@yandex.ru', password='12345')
         self.c0 = Client()
-        self.c1 = Client().force_login(self.user1)
-        self.c2 = Client().force_login(self.user2)
-        self.c3 = Client().force_login(self.user3)
+        self.c1 = Client()
+        self.c1.force_login(self.user1)
+        self.c2 = Client()
+        self.c2.force_login(self.user2)
+        self.c3 = Client()
+        self.c3.force_login(self.user3)
         self.post1 = Post.objects.create(
             text='post text1', author=self.user1
         )
@@ -237,4 +240,55 @@ class FollowTest(TestCase):
         )
 
     def test_follow(self):
-        self.c1
+        response = self.c1.get(reverse('profile_follow', kwargs={
+            'username': self.user2.username}))
+        author_user2 = Follow.objects.filter(author=self.user2).count()
+        follower_user1 = Follow.objects.filter(user=self.user1).count()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(author_user2, 1)
+        self.assertEqual(follower_user1, 1)
+
+    def test_unfollow(self):
+        Follow.objects.create(author=self.user2, user=self.user1)
+        author_user2 = Follow.objects.filter(author=self.user2).count()
+        follower_user1 = Follow.objects.filter(user=self.user1).count()
+        self.assertEqual(author_user2, 1)
+        self.assertEqual(follower_user1, 1)
+        response = self.c1.get(reverse('profile_unfollow', kwargs={
+            'username': self.user2.username}))
+        author_user2 = Follow.objects.filter(author=self.user2).count()
+        follower_user1 = Follow.objects.filter(user=self.user1).count()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(author_user2, 0)
+        self.assertEqual(follower_user1, 0)
+
+    def test_follow_post(self):
+        Post.objects.create(text='text1', author=self.user2)
+        Follow.objects.create(author=self.user2, user=self.user1)
+        response = self.c1.get(reverse('follow_index'))
+        response_no_auth = self.c0.get(reverse('follow_index'))
+        self.assertContains(response, 'text1')
+        self.assertEqual(response_no_auth.status_code, 302)
+
+    def test_comments(self):
+        post = Post.objects.create(
+            text='post text1', author=self.user1
+        )
+        response_auth_add_comment = self.c1.post(
+            reverse('add_comment', kwargs={
+                'username': self.user1.username,
+                'post_id': post.id
+            }), data={
+                'text': 'text comment',
+                'post': post,
+                'author': self.user1
+            }, follow=True)
+        response_not_auth_add_comment = self.c0.get(
+            reverse('add_comment', kwargs={
+                'username': self.user1.username,
+                'post_id': post.id
+            }), follow=True)
+        self.assertEqual(
+            response_not_auth_add_comment.resolver_match.url_name, 'login'
+        )
+        self.assertContains(response_auth_add_comment, 'text comment')

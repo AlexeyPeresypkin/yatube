@@ -9,7 +9,7 @@ from posts.forms import PostForm, CommentForm
 from posts.models import Post, Group, Comment, Follow, User
 
 
-# @cache_page(60 * 20)
+@cache_page(60 * 20)
 def index(request):
     post_list = Post.objects.order_by('-pub_date').all()
     paginator = Paginator(post_list, 10)

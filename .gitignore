@@ -127,7 +127,5 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-/yatube/media/
-/yatube/posts/test/file.jpg
 /yatube/posts/test/file.jpg
 /yatube/posts/test/

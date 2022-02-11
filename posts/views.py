@@ -36,7 +36,6 @@ def new_post(request):
             post.author = request.user
             post.save()
             return redirect('index')
-            # return redirect('post', username=request.user, post_id=30)
         return render(request, 'new_post.html',
                       {'form': form, 'context_dict': context_dict})
     form = PostForm()
@@ -115,13 +114,6 @@ def post_edit(request, username, post_id):
                       'post': post
                   })
 
-    # тут тело функции. Не забудьте проверить,
-    # что текущий пользователь — это автор записи.
-    # В качестве шаблона страницы редактирования укажите шаблон создания новой записи
-    # который вы создали раньше (вы могли назвать шаблон иначе)
-    # return render(request, 'new_post.html',
-    #               {'form': form, 'context_dict': context_dict})
-
 
 def page_not_found(request, exception):
     # Переменная exception содержит отладочную информацию,
@@ -142,23 +134,19 @@ def server_error(request):
 def add_comment(request, username, post_id):
     post = get_object_or_404(Post, pk=post_id, author__username=username)
     form = CommentForm(request.POST or None)
-    # if request.method == 'POST':
     if form.is_valid():
         comment = form.save(commit=False)
         comment.post = post
         comment.author = post.author
         comment.save()
     return redirect('post', username=username, post_id=post_id)
-    # return render(request, 'post.html', {'form': form})
 
 
 @login_required
 def follow_index(request):
-    # информация о текущем пользователе доступна в переменной request.user
     posts = Post.objects.filter(author__following__user=request.user).order_by(
         '-pub_date')
     paginator = Paginator(posts, 10)
-    # показывать по 10 записей на странице.
     page_number = request.GET.get(
         'page')  # переменная в URL с номером запрошенной страницы
     page = paginator.get_page(

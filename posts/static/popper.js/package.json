@@ -72,7 +72,7 @@
   "scripts": {
     "build": "node bundle.js && cp index.js.flow dist/umd/poppper.js.flow",
     "coverage": "COVERAGE=true yarn test",
-    "lint": "eslint ",
+    "lint": "eslint .",
     "postpublish": "nuget-publish && ./bower-publish.sh",
     "posttest": "tsc --project tests/types/tsconfig.json",
     "prebuild": "yarn lint",

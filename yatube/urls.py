@@ -39,8 +39,8 @@ urlpatterns += [
     path('about-us/', views.flatpage, {'url': '/about-us/'}, name='about'),
     path('terms/', views.flatpage, {'url': '/terms/'}, name='terms'),
     path('about/', views.flatpage, {'url': '/about/'}, name='about'),
-    path('about-author/', views.flatpage, {'url': '/about-author/'}, name='about_author'),
-    path('about-spec/', views.flatpage, {'url': '/about-spec/'}, name='about_spec'),
+    path('about/about-author/', views.flatpage, {'url': '/about-author/'}, name='about_author'),
+    path('about/about-spec/', views.flatpage, {'url': 'about/about-spec/'}, name='about_spec'),
 ]
 
 handler404 = "posts.views.page_not_found" # noqa

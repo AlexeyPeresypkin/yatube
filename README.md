@@ -39,19 +39,18 @@ python -m pip install --upgrade pip
 ```
 pip install -r requirements.txt
 ```
-Зайти в директорию приложения и выполнить миграции:
+Выполним миграции:
+
 ```
-cd yatube/
-```
-```
+python manage.py makemigrations
 python manage.py migrate
 ```
 Перед загрузкой данных очистим БД
 ```
->>> python3 manage.py shell  
->>> from django.contrib.contenttypes.models import ContentType
->>> ContentType.objects.all().delete()
->>> quit()
+python3 manage.py shell  
+from django.contrib.contenttypes.models import ContentType
+ContentType.objects.all().delete()
+quit()
 ```
 Выполните загрузку данных в БД
 ```
